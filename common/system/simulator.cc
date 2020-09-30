@@ -198,6 +198,9 @@ void Simulator::start()
       Sim()->getMagicServer()->setPerformance(true);
    }
 
+   // [Yizhou] the global BBLID is set to 0
+   m_current_bblid.push_back(0);
+
    m_running = true;
 }
 
@@ -336,4 +339,27 @@ void Simulator::printInstModeSummary()
          LOG_PRINT_ERROR("Unknown ROI mode");
    }
    printf("[SNIPER] --------------------------------------------------------------------------------\n");
+}
+
+// [Yizhou]
+void Simulator::startPimOffload(uint64_t bblid, uint64_t temp) {
+      if (Sim()->getCoreManager()->getCurrentCoreID() == 0) {
+         // std::cout << "[PIMProf] Start PIM offloading session!" << bblid << std::endl;
+         m_using_cpu = false;
+         m_using_pim = true;
+         m_current_bblid.push_back(bblid);
+      }
+   }
+
+void Simulator::endPimOffload(uint64_t bblid, uint64_t temp) {
+      if (Sim()->getCoreManager()->getCurrentCoreID() == 0) {
+         // std::cout << "[PIMProf] End PIM offloading session!" << bblid << std::endl;
+         m_using_cpu = true;
+         m_using_pim = false;
+         if (m_current_bblid.back() != bblid) {
+            std::cout << "prev id = " << m_current_bblid.back() << ", cur id = " << bblid << std::endl;
+            LOG_ASSERT_ERROR(m_current_bblid.back() == bblid, "BBLID incorrect");
+         }
+         m_current_bblid.pop_back();
+      }
 }

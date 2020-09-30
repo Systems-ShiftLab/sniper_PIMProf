@@ -82,6 +82,19 @@ public:
    // Access to the Decoder library for the simulator run
    void createDecoder();
    dl::Decoder *getDecoder();
+
+   // [Yizhou] functions for PIMProf simulation
+   bool isUsingCPU() { return m_using_cpu; }
+   bool isUsingPIM() { return m_using_pim; }
+   int64_t getCurrentBBLID() { 
+    //    std::cout << (int64_t) m_current_bblid.back() << std::endl;
+       return (int64_t) m_current_bblid.back(); 
+    }
+   void setUsingCPU(bool flag) { m_using_cpu = flag; }
+   void setUsingPIM(bool flag) { m_using_pim = flag; }
+
+   void startPimOffload(uint64_t bblid, uint64_t temp);
+   void endPimOffload(uint64_t bblid, uint64_t temp);
    
 private:
    Config m_config;
@@ -122,6 +135,10 @@ private:
    dl::DecoderFactory *m_factory;
 
    void printInstModeSummary();
+
+   // [Yizhou] parameters for PIMProf simulation
+   bool m_using_cpu = true, m_using_pim = false;
+   std::vector<uint64_t> m_current_bblid;
 };
 
 __attribute__((unused)) static Simulator *Sim()

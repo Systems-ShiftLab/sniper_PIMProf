@@ -18,6 +18,9 @@
 #define SIM_CMD_NAMED_MARKER    13
 #define SIM_CMD_SET_THREAD_NAME 14
 
+#define SIM_PIM_OFFLOAD_START 15 // [Yizhou] magic number for starting PIM offloading phase
+#define SIM_PIM_OFFLOAD_END 16 // [Yizhou] magic number for ending PIM offloading phase
+
 #define SIM_OPT_INSTRUMENT_DETAILED    0
 #define SIM_OPT_INSTRUMENT_WARMUP      1
 #define SIM_OPT_INSTRUMENT_FASTFORWARD 2
