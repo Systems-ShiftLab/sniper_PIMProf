@@ -18,8 +18,10 @@
 #define SIM_CMD_NAMED_MARKER    13
 #define SIM_CMD_SET_THREAD_NAME 14
 
-#define SIM_PIM_OFFLOAD_START 15 // [Yizhou] magic number for starting PIM offloading phase
-#define SIM_PIM_OFFLOAD_END 16 // [Yizhou] magic number for ending PIM offloading phase
+#define SIM_PIMPROF_BBL_START 1024 // [Yizhou] the start of a basic block
+#define SIM_PIMPROF_BBL_END 1025 // [Yizhou] the end of a basic block
+#define SIM_PIMPROF_OFFLOAD_START 1026 // [Yizhou] enter PIM offloading region
+#define SIM_PIMPROF_OFFLOAD_END 1027 // [Yizhou] exit PIM offloading region
 
 #define SIM_OPT_INSTRUMENT_DETAILED    0
 #define SIM_OPT_INSTRUMENT_WARMUP      1
@@ -134,5 +136,10 @@
 #define SimUser(cmd, arg)         SimMagic2(SIM_CMD_USER, cmd, arg)
 #define SimSetInstrumentMode(opt) SimMagic1(SIM_CMD_INSTRUMENT_MODE, opt)
 #define SimInSimulator()          (SimMagic0(SIM_CMD_IN_SIMULATOR)!=SIM_CMD_IN_SIMULATOR)
+
+#define SimPimprofBblStart(arg0, arg1)      SimMagic2(SIM_PIMPROF_BBL_START, arg0, arg1) // [Yizhou] interface for starting PIM offloading
+#define SimPimprofBblEnd(arg0, arg1)        SimMagic2(SIM_PIMPROF_BBL_END, arg0, arg1) // [Yizhou] interface for ending PIM offloading
+#define SimPimprofOffloadStart(arg0, arg1)      SimMagic2(SIM_PIMPROF_OFFLOAD_START, arg0, arg1) // [Yizhou] interface for starting PIM offloading
+#define SimPimprofOffloadEnd(arg0, arg1)        SimMagic2(SIM_PIMPROF_OFFLOAD_END, arg0, arg1) // [Yizhou] interface for ending PIM offloading
 
 #endif /* __SIM_API */

@@ -7,6 +7,12 @@
 
 #include <decoder.h>
 
+#include <unordered_map> // [Yizhou]
+// [Yizhou] early include
+#include "core_manager.h"
+#include "thread_manager.h"
+#include "thread.h"
+
 class _Thread;
 class SyscallServer;
 class SyncServer;
@@ -83,19 +89,6 @@ public:
    void createDecoder();
    dl::Decoder *getDecoder();
 
-   // [Yizhou] functions for PIMProf simulation
-   bool isUsingCPU() { return m_using_cpu; }
-   bool isUsingPIM() { return m_using_pim; }
-   int64_t getCurrentBBLID() { 
-    //    std::cout << (int64_t) m_current_bblid.back() << std::endl;
-       return (int64_t) m_current_bblid.back(); 
-    }
-   void setUsingCPU(bool flag) { m_using_cpu = flag; }
-   void setUsingPIM(bool flag) { m_using_pim = flag; }
-
-   void startPimOffload(uint64_t bblid, uint64_t temp);
-   void endPimOffload(uint64_t bblid, uint64_t temp);
-   
 private:
    Config m_config;
    Log m_log;
@@ -137,8 +130,60 @@ private:
    void printInstModeSummary();
 
    // [Yizhou] parameters for PIMProf simulation
+private:
+   typedef std::pair<uint64_t, uint64_t> UUID;
    bool m_using_cpu = true, m_using_pim = false;
-   std::vector<uint64_t> m_current_bblid;
+   std::vector<std::vector<uint64_t>> m_current_bblid;
+   std::vector<std::vector<UUID>> m_current_bblhash; // each core maintains their own bbl
+
+   // [Yizhou] record stats for PIMProf analysis
+protected:
+
+   class HashFunc
+   {
+     public:
+       // assuming UUID is already murmurhash-ed.
+       std::size_t operator()(const UUID &key) const
+       {
+           size_t result = key.first ^ key.second;
+           return result;
+       }
+   };
+
+   class PIMProfBBLStats
+   {
+   public:
+      uint64_t elapsed_time; // in nenoseconds
+      uint64_t instruction_count;
+      uint64_t memory_access;
+
+      PIMProfBBLStats() {
+         elapsed_time = 0;
+         instruction_count = 0;
+         memory_access = 0;
+      }
+   };
+
+   // store the nanosecond count of each basic block
+   std::vector<std::unordered_map<UUID, PIMProfBBLStats, HashFunc>> m_bblhash_map;
+public:
+   bool isUsingCPU() { return m_using_cpu; }
+   bool isUsingPIM() { return m_using_pim; }
+   void setUsingCPU(bool flag) { m_using_cpu = flag; }
+   void setUsingPIM(bool flag) { m_using_pim = flag; }
+   int64_t getCurrentBBLID();
+   std::pair<uint64_t, uint64_t> getCurrentBBLHash();
+
+   void startPimprofBbl(uint64_t hi, uint64_t lo);
+   void endPimprofBbl(uint64_t hi, uint64_t lo);
+
+   void startPimprofOffload(uint64_t bblid, uint64_t temp);
+   void endPimprofOffload(uint64_t bblid, uint64_t temp);
+
+   void addPIMProfTimeInstruction(uint64_t time, uint64_t instr);
+   void addPIMProfMemory(uint64_t val);
+
+   void dumpPIMProfStats();
 };
 
 __attribute__((unused)) static Simulator *Sim()

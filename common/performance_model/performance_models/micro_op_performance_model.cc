@@ -561,6 +561,11 @@ void MicroOpPerformanceModel::handleInstruction(DynamicInstruction *dynins)
    if (latency_out_of_band)
       notifyElapsedTimeUpdate();
 
+   // [Yizhou] Add cycle count to basic block
+   uint64_t elapsed_ns = new_latency.getElapsedTime().getNS();
+   Sim()->addPIMProfTimeInstruction(elapsed_ns, new_num_insns);
+
+
 #if DEBUG_CYCLE_COUNT_LOG
    fprintf(m_cycle_log, "[%s] latency=%d\n", itostr(m_elapsed_time).c_str(), itostr(new_latency.getElapsedTime()).c_str());
 #endif
