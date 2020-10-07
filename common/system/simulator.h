@@ -153,7 +153,7 @@ protected:
    class PIMProfBBLStats
    {
    public:
-      uint64_t elapsed_time; // in nenoseconds
+      uint64_t elapsed_time; // in nanoseconds
       uint64_t instruction_count;
       uint64_t memory_access;
 
