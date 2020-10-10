@@ -132,8 +132,8 @@ private:
    // [Yizhou] parameters for PIMProf simulation
 private:
    typedef std::pair<uint64_t, uint64_t> UUID;
-   bool m_using_cpu = true, m_using_pim = false;
-   std::vector<std::vector<uint64_t>> m_current_bblid;
+   bool m_using_pim = false;
+   std::vector<uint64_t> m_current_bblid;
    std::vector<std::vector<UUID>> m_current_bblhash; // each core maintains their own bbl
 
    // [Yizhou] record stats for PIMProf analysis
@@ -167,18 +167,15 @@ protected:
    // store the nanosecond count of each basic block
    std::vector<std::unordered_map<UUID, PIMProfBBLStats, HashFunc>> m_bblhash_map;
 public:
-   bool isUsingCPU() { return m_using_cpu; }
-   bool isUsingPIM() { return m_using_pim; }
-   void setUsingCPU(bool flag) { m_using_cpu = flag; }
-   void setUsingPIM(bool flag) { m_using_pim = flag; }
+   bool isUsingPIM();
    int64_t getCurrentBBLID();
    std::pair<uint64_t, uint64_t> getCurrentBBLHash();
 
-   void startPimprofBbl(uint64_t hi, uint64_t lo);
-   void endPimprofBbl(uint64_t hi, uint64_t lo);
+   void startPIMProfBBL(uint64_t hi, uint64_t lo);
+   void endPIMProfBBL(uint64_t hi, uint64_t lo);
 
-   void startPimprofOffload(uint64_t bblid, uint64_t temp);
-   void endPimprofOffload(uint64_t bblid, uint64_t temp);
+   void startPIMProfOffload(uint64_t bblid, uint64_t temp);
+   void endPIMProfOffload(uint64_t bblid, uint64_t temp);
 
    void addPIMProfTimeInstruction(uint64_t time, uint64_t instr);
    void addPIMProfMemory(uint64_t val);

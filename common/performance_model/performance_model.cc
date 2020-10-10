@@ -58,6 +58,7 @@ PerformanceModel::PerformanceModel(Core *core)
    , m_hold(false)
    , m_instruction_count(0)
    , m_elapsed_time(Sim()->getDvfsManager()->getCoreDomain(core->getId()))
+   , m_elapsed_time_pim(Sim()->getDvfsManager()->getCoreDomain(core->getId())) //[Yizhou]
    , m_idle_elapsed_time(Sim()->getDvfsManager()->getCoreDomain(core->getId()))
    #ifdef ENABLE_PERF_MODEL_OWN_THREAD
    , m_instruction_queue(256) // Reduce from default size to keep memory issue time more or less synchronized
@@ -74,6 +75,9 @@ PerformanceModel::PerformanceModel(Core *core)
 
    registerStatsMetric("performance_model", core->getId(), "elapsed_time", &m_elapsed_time);
    registerStatsMetric("performance_model", core->getId(), "idle_elapsed_time", &m_idle_elapsed_time);
+
+   // [Yizhou]
+   registerStatsMetric("performance_model", core->getId(), "elapsed_time_pim", &m_elapsed_time_pim);
 
    registerStatsMetric("performance_model", core->getId(), "cpiStartTime", &m_cpiStartTime);
 

@@ -1,5 +1,3 @@
-#include ../Makefile.config
-#include ../Makefile.common
 include ../buildconf.makefile
 
 PIMPROFOFFLOADER_SO := $(LLVM_BUILD_DIR)/libPIMProfOffloader.so

@@ -71,8 +71,5 @@ DramPerfModelConstant::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size,
    m_total_access_latency += access_latency;
    m_total_queueing_delay += queue_delay;
 
-   // [Yizhou]
-   Sim()->addPIMProfMemory(1);
-
    return access_latency;
 }

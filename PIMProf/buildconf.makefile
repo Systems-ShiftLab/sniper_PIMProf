@@ -1,4 +1,4 @@
-SNIPER_ROOT ?= /home/warsier/Documents/sniper_PIMProf/sniper/pin_kit
+SNIPER_ROOT ?= /home/warsier/Documents/sniper_PIMProf/sniper/
 
 DR_HOME:=
 GRAPHITE_CC:=cc

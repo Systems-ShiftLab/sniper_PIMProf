@@ -68,7 +68,6 @@ DramCntlr::getDataFromDram(IntPtr address, core_id_t requester, Byte* data_buf, 
    }
 
    SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, READ, perf);
-
    ++m_reads;
    #ifdef ENABLE_DRAM_ACCESS_COUNT
    addToDramAccessCount(address, READ);
@@ -95,7 +94,6 @@ DramCntlr::putDataToDram(IntPtr address, core_id_t requester, Byte* data_buf, Su
    }
 
    SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, WRITE, &m_dummy_shmem_perf);
-
    ++m_writes;
    #ifdef ENABLE_DRAM_ACCESS_COUNT
    addToDramAccessCount(address, WRITE);
@@ -110,6 +108,8 @@ DramCntlr::runDramPerfModel(core_id_t requester, SubsecondTime time, IntPtr addr
 {
    UInt64 pkt_size = getCacheBlockSize();
    SubsecondTime dram_access_latency = m_dram_perf_model->getAccessLatency(time, pkt_size, requester, address, access_type, perf);
+   // [Yizhou]
+   Sim()->addPIMProfMemory(1);
    return dram_access_latency;
 }
 
