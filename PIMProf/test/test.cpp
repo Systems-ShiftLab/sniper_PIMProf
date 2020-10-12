@@ -20,7 +20,7 @@
 #endif
 
 #ifndef RATE
-#define RATE 100
+#define RATE 10
 #endif
 #ifndef RANDOM
 #define RANDOM 1
