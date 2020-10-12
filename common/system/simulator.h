@@ -135,6 +135,7 @@ private:
    bool m_using_pim = false;
    std::vector<uint64_t> m_current_bblid;
    std::vector<std::vector<UUID>> m_current_bblhash; // each core maintains their own bbl
+   std::vector<uint64_t> m_pim_time;
 
    // [Yizhou] record stats for PIMProf analysis
 protected:
@@ -179,6 +180,8 @@ public:
 
    void addPIMProfTimeInstruction(uint64_t time, uint64_t instr);
    void addPIMProfMemory(uint64_t val);
+
+   void addPIMOffloadingTime(uint64_t time);
 
    void dumpPIMProfStats();
 };
