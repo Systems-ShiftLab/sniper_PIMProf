@@ -483,8 +483,15 @@ void Simulator::addPIMProfMemory(uint64_t val) {
 void Simulator::dumpPIMProfStats() {
    String filename = m_config.formatOutputFileName("pimprofstats.out");
    std::ofstream ofs(filename.c_str());
+   
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      for (auto it = m_bblhash_map[i].begin(); it != m_bblhash_map[i].end(); ++it) {
+      std::vector<std::pair<UUID, PIMProfBBLStats>> m_bblhash_sorted(m_bblhash_map[i].begin(), m_bblhash_map[i].end());
+      std::sort(
+         m_bblhash_sorted.begin(),
+         m_bblhash_sorted.end(),
+         [](std::pair<UUID, PIMProfBBLStats> &a, std::pair<UUID, PIMProfBBLStats> &b) { return a.first.first < b.first.first; }
+      );
+      for (auto it = m_bblhash_sorted.begin(); it != m_bblhash_sorted.end(); ++it) {
          UUID bblhash = it->first;
          PIMProfBBLStats stats = it->second;
          ofs << i << " "
