@@ -132,8 +132,8 @@ private:
    // [Yizhou] parameters for PIMProf simulation
 private:
    typedef std::pair<uint64_t, uint64_t> UUID;
-   bool m_using_pim = false;
-   std::vector<uint64_t> m_current_bblid;
+   std::vector<bool> m_using_pim;
+   std::vector<std::vector<uint64_t>> m_current_bblid;
    std::vector<std::vector<UUID>> m_current_bblhash; // each core maintains their own bbl
    std::vector<uint64_t> m_pim_time;
 

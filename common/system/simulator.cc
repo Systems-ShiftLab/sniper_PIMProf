@@ -199,9 +199,11 @@ void Simulator::start()
    }
 
    // [Yizhou] initialization
+   std::vector<uint64_t> bblid_vec{0};
    std::vector<UUID> bblhash_vec{std::make_pair(0, 0)}; // global hash is set to 0, 0
 
-   m_current_bblid.push_back(0);
+   m_using_pim.resize(getConfig()->getTotalCores(), 0);
+   m_current_bblid.resize(getConfig()->getTotalCores(), bblid_vec);
    m_current_bblhash.resize(getConfig()->getTotalCores(), bblhash_vec);
    m_bblhash_map.resize(getConfig()->getTotalCores());
    m_pim_time.resize(getConfig()->getTotalCores());
@@ -351,11 +353,13 @@ void Simulator::printInstModeSummary()
 
 // [Yizhou]
 bool Simulator::isUsingPIM() {
-   return m_using_pim;
+   int tid = m_thread_manager->getCurrentThread()->getId();
+   return m_using_pim[tid];
 }
 
-int64_t Simulator::getCurrentBBLID() { 
-   return m_current_bblid.back();
+int64_t Simulator::getCurrentBBLID() {
+   int tid = m_thread_manager->getCurrentThread()->getId();
+   return m_current_bblid[tid].back();
 }
 
 std::pair<uint64_t, uint64_t> Simulator::getCurrentBBLHash() {
@@ -405,9 +409,9 @@ void Simulator::endPIMProfBBL(uint64_t hi, uint64_t lo) {
 
 void Simulator::startPIMProfOffload(uint64_t hi, uint64_t type) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   // std::cout << "[PIMProf] Start PIM offloading session!" << bblid << std::endl;
+   std::cout << "[PIMProf] Start " << tid << " " << std::hex << hi << std::dec << " " << type << std::endl;
    if (tid == 0) {
-      m_using_pim = true;
+      m_using_pim[tid] = true;
       // m_current_bblid.push_back(bblid);
    }
    if (type == 0) {
@@ -427,9 +431,9 @@ void Simulator::startPIMProfOffload(uint64_t hi, uint64_t type) {
 
 void Simulator::endPIMProfOffload(uint64_t hi, uint64_t type) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   // std::cout << "[PIMProf] End PIM offloading session!" << bblid << std::endl;
+   std::cout << "[PIMProf] End " << tid << " " << std::hex << hi << std::dec << " " << type << std::endl;
    if (tid == 0) {
-      m_using_pim = false;
+      m_using_pim[tid] = false;
    }
    if (type == 0) {
       // std::cout << tid << std::hex << " " << hi << std::dec << std::endl;
