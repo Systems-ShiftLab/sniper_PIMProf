@@ -18,13 +18,13 @@ TEST_EXE_2          := test.exe.2
 PIMPROF_ROOT = /home/warsier/Documents/PIMProf_solver
 CXXFLAGS := -fPIC -std=c++11 -g -O3 -fopenmp -I$(PIMPROF_ROOT)/LLVMAnalysis
 CXX_INJ_FLAGS = $(CXXFLAGS) $(SNIPER_CFLAGS) -Xclang -load -Xclang $(PIMPROF_ROOT)/build/LLVMAnalysis/libAnnotationInjection.so
-CXX_OFF_FLAGS += $(CXXFLAGS) $(SNIPER_CFLAGS) -Xclang -load -Xclang $(PIMPROF_ROOT)/build/LLVMAnalysis/libOffloaderInjection.so
+CXX_OFF_FLAGS += $(CXXFLAGS) $(SNIPER_CFLAGS) -Xclang -load -Xclang $(PIMPROF_ROOT)/build/LLVMAnalysis/libOffloaderInjection.so 
 
 test.inj: test.cpp # print4.cpp pthreads.cpp
 	export PIMPROFINJECTMODE=SNIPER &&clang++-7 $(CXX_INJ_FLAGS) -o $@ $^ -pthread
 
 test.pim: test.cpp # print4.cpp pthreads.cpp
-	export PIMPROFDECISION=pimprofdecision.out && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && clang++-7 $(CXX_OFF_FLAGS) -o $@ $^ -pthread > test.dump 2>&1
+	export PIMPROFDECISION=pimprofdecision.out && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && clang++-7 $(CXX_OFF_FLAGS) -o $@ $^ -pthread > test.dump
 
 clean:
 	rm -rf *.inj *.pim inj_cpu inj_pim off_cpu off_pim

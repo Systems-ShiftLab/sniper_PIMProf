@@ -1,4 +1,4 @@
-SNIPER_ROOT ?= /home/warsier/Documents/sniper_PIMProf/sniper/
+SNIPER_ROOT ?= /home/warsier/Documents/sniper_PIMProf/
 
 DR_HOME:=
 GRAPHITE_CC:=cc
