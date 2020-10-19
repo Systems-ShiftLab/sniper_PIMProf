@@ -565,6 +565,7 @@ void MicroOpPerformanceModel::handleInstruction(DynamicInstruction *dynins)
    uint64_t elapsed_ns = new_latency.getElapsedTime().getNS();
    Sim()->addPIMProfTimeInstruction(elapsed_ns, new_num_insns);
    if (Sim()->isUsingPIM()) {
+      Sim()->addPIMOffloadingTime(elapsed_ns);
       m_elapsed_time_pim.addLatency(new_latency);
    }
 

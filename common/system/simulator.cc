@@ -467,9 +467,9 @@ void Simulator::addPIMProfTimeInstruction(uint64_t time, uint64_t instr) {
    it->second.elapsed_time += time;
    it->second.instruction_count += instr;
    // std::cout << tid << " " << std::hex << it->first.first << " " << it->first.second << std::dec << " " << time;
-   if (isUsingPIM()) {
-      addPIMOffloadingTime(time);
-   }
+   // if (isUsingPIM()) {
+   //    addPIMOffloadingTime(time);
+   // }
    // std::cout << std::endl;
 }
 
