@@ -100,16 +100,16 @@ UInt64 MagicServer::Magic_unlocked(thread_id_t thread_id, core_id_t core_id, UIn
       case SIM_CMD_MHZ_GET:
          return getFrequency(arg0);
       case SIM_PIMPROF_BBL_START: // [Yizhou]
-         Sim()->startPIMProfBBL(arg0, arg1);
+         Sim()->PIMProfBBLStart(arg0, arg1);
          return 0;
       case SIM_PIMPROF_BBL_END: // [Yizhou]
-         Sim()->endPIMProfBBL(arg0, arg1);
+         Sim()->PIMProfBBLEnd(arg0, arg1);
          return 0;
       case SIM_PIMPROF_OFFLOAD_START: // [Yizhou]
-         Sim()->startPIMProfOffload(arg0, arg1);
+         Sim()->PIMProfOffloadStart(arg0, arg1);
          return 0;
       case SIM_PIMPROF_OFFLOAD_END: // [Yizhou]
-         Sim()->endPIMProfOffload(arg0, arg1);
+         Sim()->PIMProfOffloadEnd(arg0, arg1);
          return 0;
       default:
          LOG_ASSERT_ERROR(false, "Got invalid Magic %lu, arg0(%lu) arg1(%lu)", cmd, arg0, arg1);
