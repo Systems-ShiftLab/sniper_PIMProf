@@ -436,6 +436,9 @@ MYLOG("L1 hit");
          }
       }
 
+      // // [Yizhou] L1 Hit
+      // Sim()->PIMProfInsertSegOnHit(ca_address, mem_op_type);
+
    } else {
       /* cache miss: either wrong coherency state or not present in the cache */
 MYLOG("L1 miss");

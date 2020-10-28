@@ -127,6 +127,7 @@ Simulator::Simulator()
    , m_memory_tracker(NULL)
    , m_running(false)
    , m_inst_mode_output(true)
+   , m_pimprof_thread_stats(m_config.getTotalCores(), PIMProf::PIMProfThreadStats(0))
 {
 }
 
@@ -202,15 +203,9 @@ void Simulator::start()
    }
 
    // [Yizhou] initialization
-   uint64_t global_val = -1;
-   std::vector<uint64_t> bblid_vec{global_val};
-   std::vector<PIMProf::UUID> bblhash_vec{std::make_pair(global_val, global_val)}; // the hash of region outside main function is set to unsigned (-1, -1)
-
-   m_using_pim.resize(getConfig()->getTotalCores(), 0);
-   m_current_bblid.resize(getConfig()->getTotalCores(), bblid_vec);
-   m_current_bblhash.resize(getConfig()->getTotalCores(), bblhash_vec);
-   m_bblhash_map.resize(getConfig()->getTotalCores());
-   m_pim_time.resize(getConfig()->getTotalCores());
+   for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
+      m_pimprof_thread_stats[i].setTid(i);
+   }
 
    m_running = true;
 }
@@ -356,148 +351,61 @@ void Simulator::printInstModeSummary()
 }
 
 /* ===================================================================== */
-/* [Yizhou] PIMProf Related Code */
+/* [Yizhou] PIMProf Wrapper of Thread Function */
 /* ===================================================================== */
 bool Simulator::PIMProfIsUsingPIM() {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_using_pim[tid];
-}
-
-int64_t Simulator::PIMProfGetCurrentBBLID() {
-   int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_current_bblid[tid].back();
+   return m_pimprof_thread_stats[tid].PIMProfIsUsingPIM();
 }
 
 PIMProf::UUID Simulator::PIMProfGetCurrentBBLHash() {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_current_bblhash[tid].back();
+   return m_pimprof_thread_stats[tid].PIMProfGetCurrentBBLHash();
+}
+
+int64_t Simulator::PIMProfGetCurrentBBLID() {
+   int tid = m_thread_manager->getCurrentThread()->getId();
+   return m_pimprof_thread_stats[tid].PIMProfGetCurrentBBLID();
 }
 
 void Simulator::PIMProfBBLStart(uint64_t hi, uint64_t lo) {
-   
    int tid = m_thread_manager->getCurrentThread()->getId();
-   m_current_bblhash[tid].push_back(std::make_pair(hi, lo));
-   // std::cout << "[PIMProf] Start BBL " << tid << " " << std::hex << hi << std::dec << " " << lo << std::endl;
+   printf("wowow %d\n", tid);
+   return m_pimprof_thread_stats[tid].PIMProfBBLStart(hi, lo);
 }
 
 void Simulator::PIMProfBBLEnd(uint64_t hi, uint64_t lo) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   auto prev_hi = m_current_bblhash[tid].back().first;
-   auto prev_lo = m_current_bblhash[tid].back().second;
-   // std::cout << tid << std::hex << " " << prev_hi << " " << prev_lo << " " << hi << " " << lo << std::dec << std::endl;
-   if (prev_hi != hi || prev_lo != lo) {
-      // std::cout << "prev id = " << std::hex << prev_hi << " " << prev_lo << ", cur id = " << hi << " " << lo << std::dec << std::endl;
-         LOG_ASSERT_ERROR(prev_hi == hi && prev_lo == lo, "BBL hash incorrect");
-   }
-   m_current_bblhash[tid].pop_back();
-   // std::cout << "[PIMProf] End BBL " << tid << " " << std::hex << hi << std::dec << " " << lo << std::endl;
+   return m_pimprof_thread_stats[tid].PIMProfBBLEnd(hi, lo);
 }
-
-// void Simulator::PIMProfOffloadStart(uint64_t bblid, uint64_t temp) {
-//    int tid = m_thread_manager->getCurrentThread()->getId();
-//    // std::cout << "[PIMProf] Start PIM offloading session!" << bblid << std::endl;
-//    if (tid == 0) {
-//       m_using_pim = true;
-//       // m_current_bblid.push_back(bblid);
-//    }
-// }
-
-// void Simulator::PIMProfOffloadEnd(uint64_t bblid, uint64_t temp) {
-//    int tid = m_thread_manager->getCurrentThread()->getId();
-//    // std::cout << "[PIMProf] End PIM offloading session!" << bblid << std::endl;
-//    if (tid == 0) {
-//       m_using_pim = false;
-//       // if (m_current_bblid.back() != bblid) {
-//       //    std::cout << "prev id = " << m_current_bblid.back() << ", cur id = " << bblid << std::endl;
-//       //    LOG_ASSERT_ERROR(m_current_bblid.back() == bblid, "BBLID incorrect");
-//       // }
-//       // m_current_bblid.pop_back();
-//    }
-// }
 
 void Simulator::PIMProfOffloadStart(uint64_t hi, uint64_t type) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   // std::cout << "[PIMProf] Start Offload " << tid << " " << std::hex << hi << std::dec << " " << type << std::endl;
-   if (tid == 0) {
-      m_using_pim[tid] = true;
-      // m_current_bblid.push_back(bblid);
-   }
-   if (type == 0) {
-      // std::cout << tid << std::hex << " " << hi << std::dec << std::endl;
-      m_current_bblhash[tid].push_back(std::make_pair(hi, 0));
-   }
-   else {
-      auto prev_hi = m_current_bblhash[tid].back().first;
-      // std::cout << tid << type << std::hex << " " << prev_hi << " " << hi << std::dec << std::endl;
-      if (prev_hi != hi) {
-         // std::cout << "prev id = " << std::hex << prev_hi << ", cur id = " << hi << std::dec << std::endl;
-            LOG_ASSERT_ERROR(prev_hi == hi, "BBL hash incorrect");
-      }
-      m_current_bblhash[tid].pop_back();
-   }
+   return m_pimprof_thread_stats[tid].PIMProfOffloadStart(hi, type);
 }
 
 void Simulator::PIMProfOffloadEnd(uint64_t hi, uint64_t type) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   // std::cout << "[PIMProf] End Offload " << tid << " " << std::hex << hi << std::dec << " " << type << std::endl;
-   if (tid == 0) {
-      m_using_pim[tid] = false;
-   }
-   if (type == 0) {
-      // std::cout << tid << std::hex << " " << hi << std::dec << std::endl;
-      m_current_bblhash[tid].push_back(std::make_pair(hi, 0));
-   }
-   else {
-      auto prev_hi = m_current_bblhash[tid].back().first;
-      // std::cout << tid << type << std::hex << " " << prev_hi << " " << hi << std::dec << std::endl;
-      if (prev_hi != hi) {
-         // std::cout << "prev id = " << std::hex << prev_hi << ", cur id = " << hi << std::dec << std::endl;
-            LOG_ASSERT_ERROR(prev_hi == hi, "BBL hash incorrect");
-      }
-      m_current_bblhash[tid].pop_back();
-   }
-   
+   return m_pimprof_thread_stats[tid].PIMProfOffloadEnd(hi, type);
 }
 
 void Simulator::PIMProfAddTimeInstruction(uint64_t time, uint64_t instr) {
    Thread *thread = m_thread_manager->getCurrentThread();
    if (thread == NULL) { return; }
    int tid = m_thread_manager->getCurrentThread()->getId();
-   if (m_current_bblhash[tid].size() == 0) { return; }
-   std::pair<uint64_t, uint64_t> bblhash = m_current_bblhash[tid].back();
-   auto it = m_bblhash_map[tid].find(bblhash);
-   if (it == m_bblhash_map[tid].end()) {
-      it = m_bblhash_map[tid].insert(std::make_pair(bblhash, PIMProfBBLStats())).first;
-   }
-   it->second.elapsed_time += time;
-   it->second.instruction_count += instr;
-   // std::cout << tid << " " << std::hex << it->first.first << " " << it->first.second << std::dec << " " << time;
-   // if (PIMProfIsUsingPIM()) {
-   //    PIMProfAddOffloadingTime(time);
-   // }
-   // std::cout << std::endl;
+   return m_pimprof_thread_stats[tid].PIMProfAddTimeInstruction(time, instr);
+}
+
+void Simulator::PIMProfAddMemory(uint64_t memory_access) {
+   int tid = m_core_manager->getCurrentCoreID(); // somehow thread ID does not work in this case
+   return m_pimprof_thread_stats[tid].PIMProfAddMemory(memory_access);
 }
 
 void Simulator::PIMProfAddOffloadingTime(uint64_t time) {
    Thread *thread = m_thread_manager->getCurrentThread();
    if (thread == NULL) { return; }
    int tid = m_thread_manager->getCurrentThread()->getId();
-   m_pim_time[tid] += time;
-   // std::cout << " " << tid << " " << time;
-}
-
-void Simulator::PIMProfAddMemory(uint64_t val) {
-   // Thread *thread = m_thread_manager->getCurrentThread();
-   // std::cout << (uint64_t) thread << std::endl;
-   // if (thread == NULL) { return; }
-   int tid = m_core_manager->getCurrentCoreID(); // somehow thread ID does not work in this case
-   if (m_current_bblhash[tid].size() == 0) { return; }
-   std::pair<uint64_t, uint64_t> bblhash = m_current_bblhash[tid].back();
-   auto it = m_bblhash_map[tid].find(bblhash);
-   if (it == m_bblhash_map[tid].end()) {
-      it = m_bblhash_map[tid].insert(std::make_pair(bblhash, PIMProfBBLStats())).first;
-   }
-   it->second.memory_access += val;
+   return m_pimprof_thread_stats[tid].PIMProfAddOffloadingTime(time);
 }
 
 void Simulator::PIMProfDumpStats() {
@@ -505,29 +413,21 @@ void Simulator::PIMProfDumpStats() {
    std::ofstream ofs(filename.c_str());
    
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      std::vector<std::pair<PIMProf::UUID, PIMProfBBLStats>> m_bblhash_sorted(m_bblhash_map[i].begin(), m_bblhash_map[i].end());
-      std::sort(
-         m_bblhash_sorted.begin(),
-         m_bblhash_sorted.end(),
-         [](std::pair<PIMProf::UUID, PIMProfBBLStats> &a, std::pair<PIMProf::UUID, PIMProfBBLStats> &b) { return a.first.first < b.first.first; }
-      );
-      for (auto it = m_bblhash_sorted.begin(); it != m_bblhash_sorted.end(); ++it) {
-         PIMProf::UUID bblhash = it->first;
-         PIMProfBBLStats stats = it->second;
-         ofs << i << " "
-         << std::hex << bblhash.first << " " << bblhash.second << " " << std::dec
-         << stats.elapsed_time << " " << stats.instruction_count << " " << stats.memory_access << std::endl;
-      }
+      m_pimprof_thread_stats[i].PIMProfDumpStats(ofs);
    }
    ofs.close();
-   ofs.open(m_config.formatOutputFileName("pimprofstats2.out").c_str());
-   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      ofs << i << " " << m_pim_time[i] << std::endl;
-   }
-   ofs.close();
+   // ofs.open(m_config.formatOutputFileName("pimprofstats2.out").c_str());
+   // for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   //    ofs << i << " " << m_pimprof_thread_stats[i].m_pim_time << std::endl;
+   // }
+   // ofs.close();
 }
 
-void Simulator::PIMProfInsertSegOnHit()
+void Simulator::PIMProfInsertSegOnHit(uint64_t tag, Core::mem_op_t mem_op_type)
 {
+   
+}
 
+void Simulator::PIMProfSplitSegOnMiss(uint64_t tag) {
+   
 }

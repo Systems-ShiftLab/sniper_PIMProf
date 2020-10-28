@@ -8,7 +8,6 @@
 #include <decoder.h>
 
 // [Yizhou]
-#include <unordered_map>
 #include "pimprof_datareuse.h"
 // [Yizhou] early include
 #include "core_manager.h"
@@ -134,43 +133,15 @@ private:
 /* ===================================================================== */
 /* [Yizhou] PIMProf Related Code */
 /* ===================================================================== */
-   // [Yizhou] parameters for PIMProf simulation
-private:
-   std::vector<bool> m_using_pim;
-   std::vector<std::vector<uint64_t>> m_current_bblid;
-   std::vector<std::vector<PIMProf::UUID>> m_current_bblhash; // each core maintains their own bbl
-   std::vector<uint64_t> m_pim_time;
-
-   // [Yizhou] record stats for PIMProf analysis
 protected:
 
-   class HashFunc
-   {
-     public:
-       // assuming PIMProf::UUID is already murmurhash-ed.
-       std::size_t operator()(const PIMProf::UUID &key) const
-       {
-           size_t result = key.first ^ key.second;
-           return result;
-       }
-   };
+   std::vector<PIMProf::PIMProfThreadStats> m_pimprof_thread_stats;
 
-   class PIMProfBBLStats
-   {
-   public:
-      uint64_t elapsed_time; // in nanoseconds
-      uint64_t instruction_count;
-      uint64_t memory_access;
+   // // store the mapping between cache tags and data reuse segments
+   // std::unordered_map<uint64_t, PIMProf::DataReuseSegment> m_tag_seg_map;
 
-      PIMProfBBLStats() {
-         elapsed_time = 0;
-         instruction_count = 0;
-         memory_access = 0;
-      }
-   };
-
-   // store the nanosecond count of each basic block
-   std::vector<std::unordered_map<PIMProf::UUID, PIMProfBBLStats, HashFunc>> m_bblhash_map;
+   // // trie for storing data reuse chains
+   // PIMProf::DataReuse m_data_reuse;
 public:
    bool PIMProfIsUsingPIM();
    int64_t PIMProfGetCurrentBBLID();
@@ -179,17 +150,19 @@ public:
    void PIMProfBBLStart(uint64_t hi, uint64_t lo);
    void PIMProfBBLEnd(uint64_t hi, uint64_t lo);
 
-   void PIMProfOffloadStart(uint64_t bblid, uint64_t temp);
-   void PIMProfOffloadEnd(uint64_t bblid, uint64_t temp);
+   void PIMProfOffloadStart(uint64_t hi, uint64_t type);
+   void PIMProfOffloadEnd(uint64_t hi, uint64_t type);
 
    void PIMProfAddTimeInstruction(uint64_t time, uint64_t instr);
-   void PIMProfAddMemory(uint64_t val);
+   void PIMProfAddMemory(uint64_t memory_access);
 
    void PIMProfAddOffloadingTime(uint64_t time);
 
    void PIMProfDumpStats();
 
-   void PIMProfInsertSegOnHit(); 
+   void PIMProfInsertSegOnHit(uint64_t tag, Core::mem_op_t mem_op_type);
+   void PIMProfSplitSegOnMiss(uint64_t tag);
+
 };
 
 __attribute__((unused)) static Simulator *Sim()
