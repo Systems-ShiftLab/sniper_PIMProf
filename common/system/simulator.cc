@@ -33,6 +33,53 @@
 // [Yizhou]
 #include "pimprof_datareuse.h"
 
+/* ===================================================================== */
+/* malloc hooks */
+/* ===================================================================== */
+// #include <malloc.h>
+
+// /* Prototypes for our hooks.  */
+// static void my_init_hook(void);
+// static void my_free_hook (void*, const void *);
+
+// /* Variables to save original hooks. */
+// static void (*old_free_hook)(void*, const void *);
+
+// /* Override initializing hook from the C library. */
+// void (*__malloc_initialize_hook)(void) = my_init_hook;
+
+// static void
+// my_init_hook(void)
+// {
+//    old_free_hook = __free_hook;
+//    __free_hook = my_free_hook;
+// }
+
+// static void
+// my_free_hook(void *ptr, const void *caller)
+// {
+//    /* Restore all old hooks */
+//    __free_hook = old_free_hook;
+//    /* Call recursively */
+//    free(ptr);
+//    /* Save underlying hooks */
+//    old_free_hook = __free_hook;
+//    /* printf might call free, so protect it too. */
+//    printf("freed pointer %p\n", ptr);
+//    /* Restore our own hooks */
+//    __free_hook = my_free_hook;
+// }
+
+// void *pimprof_ptr;
+
+// void operator delete(void * p) throw()
+// {
+//    // printf("delete %p\n", p);
+//    pimprof_ptr = p;
+//    free(p);
+// }
+
+
 Simulator *Simulator::m_singleton;
 config::Config *Simulator::m_config_file;
 bool Simulator::m_config_file_allowed = true;
@@ -127,7 +174,6 @@ Simulator::Simulator()
    , m_memory_tracker(NULL)
    , m_running(false)
    , m_inst_mode_output(true)
-   , m_pimprof_thread_stats(m_config.getTotalCores(), PIMProf::PIMProfThreadStats(0))
 {
 }
 
@@ -201,10 +247,10 @@ void Simulator::start()
       // roi-begin
       Sim()->getMagicServer()->setPerformance(true);
    }
-
+   
    // [Yizhou] initialization
    for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
-      m_pimprof_thread_stats[i].setTid(i);
+      m_pimprof_thread_stats.push_back(new PIMProf::PIMProfThreadStats(i));
    }
 
    m_running = true;
@@ -246,6 +292,9 @@ Simulator::~Simulator()
 
    // [Yizhou]
    PIMProfDumpStats();
+   for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
+      delete m_pimprof_thread_stats[i];
+   }
 
    if (m_rtn_tracer)
    {
@@ -355,57 +404,56 @@ void Simulator::printInstModeSummary()
 /* ===================================================================== */
 bool Simulator::PIMProfIsUsingPIM() {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfIsUsingPIM();
+   return m_pimprof_thread_stats[tid]->PIMProfIsUsingPIM();
 }
 
 PIMProf::UUID Simulator::PIMProfGetCurrentBBLHash() {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfGetCurrentBBLHash();
+   return m_pimprof_thread_stats[tid]->PIMProfGetCurrentBBLHash();
 }
 
 int64_t Simulator::PIMProfGetCurrentBBLID() {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfGetCurrentBBLID();
+   return m_pimprof_thread_stats[tid]->PIMProfGetCurrentBBLID();
 }
 
 void Simulator::PIMProfBBLStart(uint64_t hi, uint64_t lo) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   printf("wowow %d\n", tid);
-   return m_pimprof_thread_stats[tid].PIMProfBBLStart(hi, lo);
+   return m_pimprof_thread_stats[tid]->PIMProfBBLStart(hi, lo);
 }
 
 void Simulator::PIMProfBBLEnd(uint64_t hi, uint64_t lo) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfBBLEnd(hi, lo);
+   return m_pimprof_thread_stats[tid]->PIMProfBBLEnd(hi, lo);
 }
 
 void Simulator::PIMProfOffloadStart(uint64_t hi, uint64_t type) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfOffloadStart(hi, type);
+   return m_pimprof_thread_stats[tid]->PIMProfOffloadStart(hi, type);
 }
 
 void Simulator::PIMProfOffloadEnd(uint64_t hi, uint64_t type) {
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfOffloadEnd(hi, type);
+   return m_pimprof_thread_stats[tid]->PIMProfOffloadEnd(hi, type);
 }
 
 void Simulator::PIMProfAddTimeInstruction(uint64_t time, uint64_t instr) {
    Thread *thread = m_thread_manager->getCurrentThread();
    if (thread == NULL) { return; }
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfAddTimeInstruction(time, instr);
+   return m_pimprof_thread_stats[tid]->PIMProfAddTimeInstruction(time, instr);
 }
 
 void Simulator::PIMProfAddMemory(uint64_t memory_access) {
    int tid = m_core_manager->getCurrentCoreID(); // somehow thread ID does not work in this case
-   return m_pimprof_thread_stats[tid].PIMProfAddMemory(memory_access);
+   return m_pimprof_thread_stats[tid]->PIMProfAddMemory(memory_access);
 }
 
 void Simulator::PIMProfAddOffloadingTime(uint64_t time) {
    Thread *thread = m_thread_manager->getCurrentThread();
    if (thread == NULL) { return; }
    int tid = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[tid].PIMProfAddOffloadingTime(time);
+   return m_pimprof_thread_stats[tid]->PIMProfAddOffloadingTime(time);
 }
 
 void Simulator::PIMProfDumpStats() {
@@ -413,7 +461,7 @@ void Simulator::PIMProfDumpStats() {
    std::ofstream ofs(filename.c_str());
    
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      m_pimprof_thread_stats[i].PIMProfDumpStats(ofs);
+      m_pimprof_thread_stats[i]->PIMProfDumpStats(ofs);
    }
    ofs.close();
    // ofs.open(m_config.formatOutputFileName("pimprofstats2.out").c_str());

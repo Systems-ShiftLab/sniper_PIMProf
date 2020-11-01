@@ -135,7 +135,7 @@ private:
 /* ===================================================================== */
 protected:
 
-   std::vector<PIMProf::PIMProfThreadStats> m_pimprof_thread_stats;
+   std::vector<PIMProf::PIMProfThreadStats *> m_pimprof_thread_stats;
 
    // // store the mapping between cache tags and data reuse segments
    // std::unordered_map<uint64_t, PIMProf::DataReuseSegment> m_tag_seg_map;

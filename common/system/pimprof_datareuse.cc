@@ -139,16 +139,12 @@ void PIMProfThreadStats::PIMProfBBLStart(uint64_t hi, uint64_t lo)
    if (it == m_bblhash2bblid.end()) {
       bblid = m_bblhash2bblid.size();
       m_bblhash2bblid.insert(std::make_pair(bblhash, bblid));
-      printf("%lu %lu %lx %lx\n", bblid, m_bblid2stats.size(), bblhash.first, bblhash.second);
-      auto begin = m_bblid2stats.begin();
-      auto end = m_bblid2stats.end();
-      printf("%p %p %p\n", &m_bblid2stats, &*begin, &*end);
-      PIMProfBBLStats temp;
-      temp.bblid = bblid; temp.bblhash = bblhash;
-      printf("%lu %lu %lx %lx\n", temp.bblid, m_bblid2stats.size(), temp.bblhash.first, temp.bblhash.second);
       
-      m_bblid2stats.push_back(temp);
-      printf("wow\n");
+      
+      m_bblid2stats.push_back(new PIMProfBBLStats(bblid, bblhash));
+      if (bblhash.first <= 0x10000000) {
+         printf("%lu %lu %lx %lx\n", bblid, m_bblid2stats.size(), bblhash.first, bblhash.second);
+      }
    }
    else {
       bblid = it->second;
@@ -193,14 +189,14 @@ void PIMProfThreadStats::PIMProfOffloadEnd(uint64_t hi, uint64_t type)
 void PIMProfThreadStats::PIMProfAddTimeInstruction(uint64_t time, uint64_t instr)
 {
    BBLID bblid = m_current_bblid.back();
-   m_bblid2stats[bblid].elapsed_time += time;
-   m_bblid2stats[bblid].instruction_count += instr;
+   PIMProfGetBBLStats(bblid)->elapsed_time += time;
+   PIMProfGetBBLStats(bblid)->instruction_count += instr;
 }
 
 void PIMProfThreadStats::PIMProfAddMemory(uint64_t memory_access)
 {
    BBLID bblid = m_current_bblid.back();
-   m_bblid2stats[bblid].memory_access += memory_access;
+   PIMProfGetBBLStats(bblid)->memory_access += memory_access;
 }
 
 void PIMProfThreadStats::PIMProfAddOffloadingTime(uint64_t time)
@@ -221,8 +217,9 @@ void PIMProfThreadStats::PIMProfDumpStats(std::ostream &ofs)
       BBLID bblid = it->second;
       ofs << tid << " "
       << std::hex << bblhash.first << " " << bblhash.second << " " << std::dec
-      << m_bblid2stats[bblid].elapsed_time << " " << m_bblid2stats[bblid].instruction_count << " " << m_bblid2stats[bblid].memory_access << std::endl;
+      << PIMProfGetBBLStats(bblid)->elapsed_time << " " << PIMProfGetBBLStats(bblid)->instruction_count << " " << PIMProfGetBBLStats(bblid)->memory_access << std::endl;
    }
+   ofs << tid << " " << std::hex << m_globalbblstats->bblhash.first << m_globalbblstats->bblhash.second << " " << std::dec << m_globalbblstats->elapsed_time << " " << m_globalbblstats->instruction_count << " " << m_globalbblstats->memory_access << std::endl;
 }
 
 void PIMProfThreadStats::PIMProfInsertSegOnHit(uint64_t tag, int placeholder)
