@@ -8,7 +8,7 @@
 #include <decoder.h>
 
 // [Yizhou]
-#include "pimprof_datareuse.h"
+#include "/home/warsier/Documents/PIMProf_solver/PinInstrument/DataReuse.h"
 // [Yizhou] early include
 #include "core_manager.h"
 #include "thread_manager.h"

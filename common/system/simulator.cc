@@ -30,9 +30,6 @@
 
 #include <sstream>
 
-// [Yizhou]
-#include "pimprof_datareuse.h"
-
 /* ===================================================================== */
 /* malloc hooks */
 /* ===================================================================== */
@@ -459,7 +456,7 @@ void Simulator::PIMProfAddOffloadingTime(uint64_t time) {
 void Simulator::PIMProfInsertSegOnHit(uint64_t tag, Core::mem_op_t mem_op_type)
 {
    int idx = m_core_manager->getCurrentCoreID();
-   return m_pimprof_thread_stats[idx]->PIMProfInsertSegOnHit(tag, mem_op_type);
+   return m_pimprof_thread_stats[idx]->PIMProfInsertSegOnHit(tag, mem_op_type == Core::mem_op_t::WRITE);
 }
 
 void Simulator::PIMProfSplitSegOnMiss(uint64_t tag) {
