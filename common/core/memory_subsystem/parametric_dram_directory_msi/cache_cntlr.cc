@@ -436,8 +436,8 @@ MYLOG("L1 hit");
          }
       }
 
-      // // [Yizhou] L1 Hit
-      // Sim()->PIMProfInsertSegOnHit(ca_address, mem_op_type);
+      // [Yizhou] L1 Hit
+      Sim()->PIMProfInsertSegOnHit(ca_address, mem_op_type);
 
    } else {
       /* cache miss: either wrong coherency state or not present in the cache */
@@ -479,7 +479,8 @@ MYLOG("processMemOpFromCore l%d before next", m_mem_component);
 MYLOG("processMemOpFromCore l%d next hit = %d", m_mem_component, next_cache_hit);
 
       if (next_cache_hit) {
-
+         // [Yizhou] lower level cache hit
+         Sim()->PIMProfInsertSegOnHit(ca_address, mem_op_type);
       } else {
          /* last level miss, a message has been sent. */
 
@@ -510,6 +511,8 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
          releaseStackLock(ca_address, true);
          #else
          #endif
+         // [Yizhou] cache miss
+         Sim()->PIMProfSplitSegOnMiss(ca_address);
       }
 
 

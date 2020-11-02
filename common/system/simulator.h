@@ -158,7 +158,7 @@ public:
 
    void PIMProfAddOffloadingTime(uint64_t time);
 
-   void PIMProfDumpStats();
+   void PIMProfPrintStats();
 
    void PIMProfInsertSegOnHit(uint64_t tag, Core::mem_op_t mem_op_type);
    void PIMProfSplitSegOnMiss(uint64_t tag);

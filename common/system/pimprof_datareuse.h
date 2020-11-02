@@ -22,116 +22,10 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include "core.h"
+
 namespace PIMProf
 {
-
-/* ===================================================================== */
-/* fast vector */
-/* ===================================================================== */
-template <class T>
-class FastVector {
-public:
-	FastVector();
-	~FastVector();
-	void push_back(T);
-	//void insert(int pos, FastVector<T> &inputFV, int begin, int end);
-	void append(FastVector<T> &);
-	void append(T *, size_t);
-	int size();
-	void clear();
-	T& operator[](int idx) const { return arr_vector[idx]; }
-private:
-	T* arr_vector;
-	int cur_size;
-	int vector_max_size;
-};
-
-
-template <class T>
-FastVector<T>::FastVector()
-{
-	cur_size = 0;
-	vector_max_size = 200;
-	arr_vector = (T *) malloc(vector_max_size * sizeof(T));
-	//printf("%lu\n", vector_max_size * sizeof(T));
-}
-
-template <class T>
-FastVector<T>::~FastVector()
-{
-	free(arr_vector);
-}
-
-template <class T>
-void FastVector<T>::push_back(T input)
-{
-	if (cur_size >= vector_max_size) {
-		vector_max_size *= 10;
-		arr_vector = (T *) realloc(arr_vector, vector_max_size * sizeof(T));
-		//printf("@@@@ push_back reallocate\n");
-	}
-	arr_vector[cur_size] = input;
-	++cur_size;
-}
-
-template <class T>
-void FastVector<T>::append(FastVector<T> &input)
-{
-	if (input.size() + cur_size >= vector_max_size) {
-		vector_max_size = (cur_size + input.size()) * 10;
-		arr_vector = (T *) realloc(arr_vector, vector_max_size * sizeof(T));
-		//printf("@@@@ append reallocate\n");
-	}
-
-	memcpy(arr_vector + cur_size, input.arr_vector, input.size() * sizeof(T));
-	cur_size += input.size();
-}
-
-
-template <class T>
-void FastVector<T>::append(T *input, size_t input_size)
-{
-	if (input_size + cur_size >= vector_max_size) {
-		vector_max_size = (cur_size + input_size) * 10;
-		arr_vector = (T *) realloc(arr_vector, vector_max_size * sizeof(T));
-		//printf("@@@@ append reallocate\n");
-	}
-
-	memcpy(arr_vector + cur_size, input, input_size * sizeof(T));
-
-	cur_size += input_size;
-}
-
-/*
-template <class T>
-void FastVector<T>::insert(int pos, FastVector<T> &inputFV, int begin, int end)
-{
-	//TODO: memcpy the covered part to the end
-	if (end - begin + 1 + cur_size >= vector_max_size) {
-		vector_max_size = (cur_size + end - begin + 1) * 10;
-		arr_vector = (T*) realloc(arr_vector, vector_max_size * sizeof(T));
-	}
-	memcpy(arr_vector + cur_size, arr_vector + pos + 1, end - begin + 1);
-	memcpy(arr_vector + pos, inputFV.arr_vector + begin, end - begin + 1);
-}
-*/
-
-template <class T>
-int FastVector<T>::size()
-{
-	return cur_size;
-}
-
-
-template <class T>
-void FastVector<T>::clear()
-{
-	cur_size = 0;
-	vector_max_size = 200;
-	arr_vector = (T *) realloc(arr_vector, vector_max_size * sizeof(T));
-}
-
-
 /* ===================================================================== */
 /* Typedefs and constants */
 /* ===================================================================== */
@@ -249,13 +143,11 @@ public:
 
    inline std::ostream &print(std::ostream &out)
    {
-      out << "{ ";
-      out << _headID << " | ";
+      out << "head = " << (int64_t)_headID << ", " << "count = " << _count << " | ";
       for (auto it = _set.begin(); it != _set.end(); it++)
       {
-         out << *it << ", ";
+         out << (int64_t)*it << " ";
       }
-      out << "}";
       out << std::endl;
       return out;
    }
@@ -310,11 +202,12 @@ public:
    ~DataReuse();
 
 public:
-   void UpdateTrie(TrieNode *root, DataReuseSegment &seg);
+   void UpdateTrie(TrieNode *root, const DataReuseSegment *seg);
    void DeleteTrie(TrieNode *root);
-   void ExportSegment(DataReuseSegment &seg, TrieNode *leaf);
-   void PrintTrie(std::ostream &out, TrieNode *root, int parent, int &count);
-   std::ostream &print(std::ostream &out, TrieNode *root);
+   void ExportSegment(DataReuseSegment *seg, TrieNode *leaf);
+   void PrintDotGraphHelper(std::ostream &out, TrieNode *root, int parent, int &count);
+   std::ostream &PrintDotGraph(std::ostream &out);
+   std::ostream &PrintAllSegments(std::ostream &out);
 
    inline TrieNode *getRoot()
    {
@@ -347,10 +240,9 @@ class PIMProfBBLStats
 public:
    BBLID bblid;
    UUID bblhash;
-   uint64_t elapsed_time; // in nanoseconds
+   uint64_t elapsed_time; // store the nanosecond count of each basic block
    uint64_t instruction_count;
    uint64_t memory_access;
-   // int temp[8];
 
    PIMProfBBLStats(
       BBLID _bblid = 0,
@@ -375,10 +267,14 @@ private:
    std::vector<BBLID> m_current_bblid;
    uint64_t m_pim_time;
 
-   // store the nanosecond count of each basic block
+   // all class objects need to be stored in pointer form,
+   // otherwise Sniper will somehow deallocate them unexpectedly.
    std::unordered_map<UUID, BBLID, PIMProfHashFunc> m_bblhash2bblid;
    std::vector<PIMProfBBLStats *> m_bblid2stats;
    PIMProfBBLStats *m_globalbblstats;
+   
+   std::unordered_map<uint64_t, DataReuseSegment *> m_tag2seg;
+   DataReuse *m_data_reuse;
 
 public:
    PIMProfThreadStats(int _tid = 0)
@@ -393,14 +289,19 @@ public:
       m_bblhash2bblid.insert(std::make_pair(UUID(0, 0), 0));
       m_bblid2stats.push_back(new PIMProfBBLStats(0, UUID(0, 0)));
       m_globalbblstats = new PIMProfBBLStats(GLOBAL_BBLID, UUID(GLOBAL_BBLID, GLOBAL_BBLID));
+      m_data_reuse = new DataReuse();
    }
 
-   PIMProfThreadStats()
+   ~PIMProfThreadStats()
    {
       for (auto it = m_bblid2stats.begin(); it != m_bblid2stats.end(); ++it) {
          delete *it;
       }
       delete m_globalbblstats;
+      delete m_data_reuse;
+      for (auto it = m_tag2seg.begin(); it != m_tag2seg.end(); ++it) {
+         delete it->second;
+      }
    }
 
    void setTid(int _tid) {
@@ -434,10 +335,13 @@ public:
 
    void PIMProfAddOffloadingTime(uint64_t time);
 
-   void PIMProfDumpStats(std::ostream &ofs);
+   void PIMProfInsertSegOnHit(uintptr_t tag, Core::mem_op_t mem_op_type);
+   void PIMProfSplitSegOnMiss(uintptr_t tag);
 
-   void PIMProfInsertSegOnHit(uint64_t tag, int placeholder);
-   void PIMProfSplitSegOnMiss(uint64_t tag);
+   void PIMProfPrintStats(std::ostream &ofs);
+   void PIMProfPrintPIMTime(std::ostream &ofs);
+   void PIMProfPrintDataReuseDotGraph(std::ostream &ofs);
+   void PIMProfPrintDataReuseSegments(std::ostream &ofs);
 };
 
 } // namespace PIMProf
