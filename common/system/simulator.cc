@@ -247,7 +247,7 @@ void Simulator::start()
    
    // [Yizhou] initialization
    for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
-      m_pimprof_thread_stats.push_back(new PIMProf::PIMProfThreadStats(i));
+      m_pimprof_thread_stats.push_back(new PIMProf::ThreadStats(i));
    }
 
    m_running = true;
@@ -401,67 +401,67 @@ void Simulator::printInstModeSummary()
 /* ===================================================================== */
 bool Simulator::PIMProfIsUsingPIM() {
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfIsUsingPIM();
+   return m_pimprof_thread_stats[idx]->IsUsingPIM();
 }
 
 PIMProf::UUID Simulator::PIMProfGetCurrentBBLHash() {
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfGetCurrentBBLHash();
+   return m_pimprof_thread_stats[idx]->GetCurrentBBLHash();
 }
 
 int64_t Simulator::PIMProfGetCurrentBBLID() {
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfGetCurrentBBLID();
+   return m_pimprof_thread_stats[idx]->GetCurrentBBLID();
 }
 
 void Simulator::PIMProfBBLStart(uint64_t hi, uint64_t lo) {
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfBBLStart(hi, lo);
+   return m_pimprof_thread_stats[idx]->BBLStart(hi, lo);
 }
 
 void Simulator::PIMProfBBLEnd(uint64_t hi, uint64_t lo) {
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfBBLEnd(hi, lo);
+   return m_pimprof_thread_stats[idx]->BBLEnd(hi, lo);
 }
 
 void Simulator::PIMProfOffloadStart(uint64_t hi, uint64_t type) {
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfOffloadStart(hi, type);
+   return m_pimprof_thread_stats[idx]->OffloadStart(hi, type);
 }
 
 void Simulator::PIMProfOffloadEnd(uint64_t hi, uint64_t type) {
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfOffloadEnd(hi, type);
+   return m_pimprof_thread_stats[idx]->OffloadEnd(hi, type);
 }
 
 void Simulator::PIMProfAddTimeInstruction(uint64_t time, uint64_t instr) {
    Thread *thread = m_thread_manager->getCurrentThread();
    if (thread == NULL) { return; }
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfAddTimeInstruction(time, instr);
+   return m_pimprof_thread_stats[idx]->AddTimeInstruction(time, instr);
 }
 
 void Simulator::PIMProfAddMemory(uint64_t memory_access) {
    int idx = m_core_manager->getCurrentCoreID(); // somehow thread ID does not work in this case
-   return m_pimprof_thread_stats[idx]->PIMProfAddMemory(memory_access);
+   return m_pimprof_thread_stats[idx]->AddMemory(memory_access);
 }
 
 void Simulator::PIMProfAddOffloadingTime(uint64_t time) {
    Thread *thread = m_thread_manager->getCurrentThread();
    if (thread == NULL) { return; }
    int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->PIMProfAddOffloadingTime(time);
+   return m_pimprof_thread_stats[idx]->AddOffloadingTime(time);
 }
 
 void Simulator::PIMProfInsertSegOnHit(uint64_t tag, Core::mem_op_t mem_op_type)
 {
    int idx = m_core_manager->getCurrentCoreID();
-   return m_pimprof_thread_stats[idx]->PIMProfInsertSegOnHit(tag, mem_op_type == Core::mem_op_t::WRITE);
+   return m_pimprof_thread_stats[idx]->InsertSegOnHit(tag, mem_op_type == Core::mem_op_t::WRITE);
 }
 
 void Simulator::PIMProfSplitSegOnMiss(uint64_t tag) {
    int idx = m_core_manager->getCurrentCoreID();
-   return m_pimprof_thread_stats[idx]->PIMProfSplitSegOnMiss(tag);
+   return m_pimprof_thread_stats[idx]->SplitSegOnMiss(tag);
 }
 
 void Simulator::PIMProfPrintStats() {
@@ -469,13 +469,13 @@ void Simulator::PIMProfPrintStats() {
    std::ofstream ofs(filename.c_str());
    
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      m_pimprof_thread_stats[i]->PIMProfPrintStats(ofs);
+      m_pimprof_thread_stats[i]->PrintStats(ofs);
    }
    ofs.close();
 
    ofs.open(m_config.formatOutputFileName("pimprofstats2.out").c_str());
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      m_pimprof_thread_stats[i]->PIMProfPrintPIMTime(ofs);
+      m_pimprof_thread_stats[i]->PrintPIMTime(ofs);
    }
    ofs.close();
 
@@ -483,15 +483,13 @@ void Simulator::PIMProfPrintStats() {
       std::stringstream ss;
       ss << "pimprofreuse" << i << ".dot";
       ofs.open(m_config.formatOutputFileName(ss.str().c_str()).c_str());
-      m_pimprof_thread_stats[i]->PIMProfPrintDataReuseDotGraph(ofs);
+      m_pimprof_thread_stats[i]->PrintDataReuseDotGraph(ofs);
       ofs.close();
    }
 
    ofs.open(m_config.formatOutputFileName("pimprofreusesegments.out").c_str());
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      ofs << "========================================================" << std::endl;
-      ofs << "Core " << i << std::endl;
-      m_pimprof_thread_stats[i]->PIMProfPrintDataReuseSegments(ofs);
+      m_pimprof_thread_stats[i]->PrintDataReuseSegments(ofs);
    }
    ofs.close();
 }

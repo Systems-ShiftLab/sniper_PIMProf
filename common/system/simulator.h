@@ -8,7 +8,7 @@
 #include <decoder.h>
 
 // [Yizhou]
-#include "/home/warsier/Documents/PIMProf_solver/PinInstrument/DataReuse.h"
+#include "/home/warsier/Documents/PIMProf_solver/PIMProfSolver/Stats.h"
 // [Yizhou] early include
 #include "core_manager.h"
 #include "thread_manager.h"
@@ -135,7 +135,7 @@ private:
 /* ===================================================================== */
 protected:
 
-   std::vector<PIMProf::PIMProfThreadStats *> m_pimprof_thread_stats;
+   std::vector<PIMProf::ThreadStats *> m_pimprof_thread_stats;
 
    // // store the mapping between cache tags and data reuse segments
    // std::unordered_map<uint64_t, PIMProf::DataReuseSegment> m_tag_seg_map;
