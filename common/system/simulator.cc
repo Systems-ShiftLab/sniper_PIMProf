@@ -404,16 +404,6 @@ bool Simulator::PIMProfIsUsingPIM() {
    return m_pimprof_thread_stats[idx]->IsUsingPIM();
 }
 
-PIMProf::UUID Simulator::PIMProfGetCurrentBBLHash() {
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->GetCurrentBBLHash();
-}
-
-int64_t Simulator::PIMProfGetCurrentBBLID() {
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->GetCurrentBBLID();
-}
-
 void Simulator::PIMProfBBLStart(uint64_t hi, uint64_t lo) {
    int idx = m_thread_manager->getCurrentThread()->getId();
    return m_pimprof_thread_stats[idx]->BBLStart(hi, lo);
@@ -465,6 +455,15 @@ void Simulator::PIMProfSplitSegOnMiss(uint64_t tag) {
 }
 
 void Simulator::PIMProfPrintStats() {
+   std::unordered_map<PIMProf::UUID, PIMProf::BBLStats *, PIMProf::UUIDHashFunc> statsmap;
+   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+      m_pimprof_thread_stats[i]->MergeStatsMap(statsmap);
+   }
+   m_pimprof_thread_stats[0]->GenerateBBLID(statsmap);
+   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+      m_pimprof_thread_stats[i]->AssignBBLID(statsmap);
+   }
+
    String filename = m_config.formatOutputFileName("pimprofstats.out");
    std::ofstream ofs(filename.c_str());
    
@@ -479,13 +478,13 @@ void Simulator::PIMProfPrintStats() {
    }
    ofs.close();
 
-   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
-      std::stringstream ss;
-      ss << "pimprofreuse" << i << ".dot";
-      ofs.open(m_config.formatOutputFileName(ss.str().c_str()).c_str());
-      m_pimprof_thread_stats[i]->PrintDataReuseDotGraph(ofs);
-      ofs.close();
-   }
+   // for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   //    std::stringstream ss;
+   //    ss << "pimprofreuse" << i << ".dot";
+   //    ofs.open(m_config.formatOutputFileName(ss.str().c_str()).c_str());
+   //    m_pimprof_thread_stats[i]->PrintDataReuseDotGraph(ofs);
+   //    ofs.close();
+   // }
 
    ofs.open(m_config.formatOutputFileName("pimprofreusesegments.out").c_str());
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {

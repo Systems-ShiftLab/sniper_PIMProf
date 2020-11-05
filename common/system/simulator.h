@@ -137,11 +137,6 @@ protected:
 
    std::vector<PIMProf::ThreadStats *> m_pimprof_thread_stats;
 
-   // // store the mapping between cache tags and data reuse segments
-   // std::unordered_map<uint64_t, PIMProf::DataReuseSegment> m_tag_seg_map;
-
-   // // trie for storing data reuse chains
-   // PIMProf::DataReuse m_data_reuse;
 public:
    bool PIMProfIsUsingPIM();
    int64_t PIMProfGetCurrentBBLID();
