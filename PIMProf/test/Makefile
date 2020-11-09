@@ -24,7 +24,7 @@ test.inj: test.cpp # print4.cpp pthreads.cpp
 	export PIMPROFINJECTMODE=SNIPER &&clang++-7 $(CXX_INJ_FLAGS) -o $@ $^ -pthread
 
 test.pim: test.cpp # print4.cpp pthreads.cpp
-	export PIMPROFDECISION=pimprofdecision.out && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && clang++-7 $(CXX_OFF_FLAGS) -o $@ $^ -pthread > test.dump
+	export PIMPROFDECISION=mpkidecision.out && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && clang++-7 $(CXX_OFF_FLAGS) -o $@ $^ -pthread > test.dump
 
 clean:
 	rm -rf *.inj *.pim inj_cpu inj_pim off_cpu off_pim
