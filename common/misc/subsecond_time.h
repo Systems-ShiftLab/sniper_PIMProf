@@ -45,6 +45,12 @@ inline SubsecondTime operator*(T lhs, const SubsecondTime& rhs);
 
 class SubsecondTime
 {
+// [Yizhou]
+public:
+   inline void *getTimeAddress()
+   {
+      return &m_time;
+   }
 public:
    static const SubsecondTime FS(uint64_t fs = 1) { return fs * SubsecondTime(FS_1); }
    static const SubsecondTime PS(uint64_t ps = 1) { return ps * SubsecondTime(PS_1); }
@@ -526,6 +532,13 @@ inline std::ostream &operator<<(std::ostream &os, const ComponentLatency &latenc
 //  but aren't sure if you'd like to commit them directly to this component yet.
 class ComponentTime
 {
+// [Yizhou]
+public:
+   inline void *getTimeAddress()
+   {
+      return m_time.getTimeAddress();
+   }
+
 public:
    // For adding cycles to this component
    // The resulting amount of time will depend on the current frequency

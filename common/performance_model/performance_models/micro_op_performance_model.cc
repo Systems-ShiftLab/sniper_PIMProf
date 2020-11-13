@@ -562,10 +562,13 @@ void MicroOpPerformanceModel::handleInstruction(DynamicInstruction *dynins)
       notifyElapsedTimeUpdate();
 
    // [Yizhou] Add cycle count to basic block
-   uint64_t elapsed_ns = new_latency.getElapsedTime().getNS();
-   Sim()->PIMProfAddTimeInstruction(elapsed_ns, new_num_insns);
+   uint64_t elapsed_fs = new_latency.getElapsedTime().getFS();
+   m_elapsed_time_subsecond += new_latency.getElapsedTime();
+   m_elapsed_time_fs += elapsed_fs;
+   Sim()->PIMProfAddTimeInstruction(elapsed_fs, new_num_insns);
+
    if (Sim()->PIMProfIsUsingPIM()) {
-      Sim()->PIMProfAddOffloadingTime(elapsed_ns);
+      Sim()->PIMProfAddOffloadingTime(elapsed_fs);
       m_elapsed_time_pim.addLatency(new_latency);
    }
 

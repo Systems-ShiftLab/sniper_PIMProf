@@ -126,6 +126,8 @@ protected:
    UInt64 m_instruction_count;
 
    ComponentTime m_elapsed_time;
+   SubsecondTime m_elapsed_time_subsecond; // [Yizhou]
+   uint64_t m_elapsed_time_fs; // [Yizhou]
    ComponentTime m_elapsed_time_pim; // [Yizhou]
 private:
    ComponentTime m_idle_elapsed_time;

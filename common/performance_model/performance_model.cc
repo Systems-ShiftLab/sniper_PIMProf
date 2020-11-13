@@ -58,6 +58,8 @@ PerformanceModel::PerformanceModel(Core *core)
    , m_hold(false)
    , m_instruction_count(0)
    , m_elapsed_time(Sim()->getDvfsManager()->getCoreDomain(core->getId()))
+   , m_elapsed_time_subsecond()
+   , m_elapsed_time_fs(0)
    , m_elapsed_time_pim(Sim()->getDvfsManager()->getCoreDomain(core->getId())) //[Yizhou]
    , m_idle_elapsed_time(Sim()->getDvfsManager()->getCoreDomain(core->getId()))
    #ifdef ENABLE_PERF_MODEL_OWN_THREAD
@@ -77,6 +79,8 @@ PerformanceModel::PerformanceModel(Core *core)
    registerStatsMetric("performance_model", core->getId(), "idle_elapsed_time", &m_idle_elapsed_time);
 
    // [Yizhou]
+   registerStatsMetric("performance_model", core->getId(), "elapsed_time_subsecond", &m_elapsed_time_subsecond);
+   registerStatsMetric("performance_model", core->getId(), "elapsed_time_ns", &m_elapsed_time_fs);
    registerStatsMetric("performance_model", core->getId(), "elapsed_time_pim", &m_elapsed_time_pim);
 
    registerStatsMetric("performance_model", core->getId(), "cpiStartTime", &m_cpiStartTime);
@@ -329,6 +333,8 @@ void PerformanceModel::synchronize()
 
 void PerformanceModel::incrementIdleElapsedTime(SubsecondTime time)
 {
+   void *p = m_idle_elapsed_time.getTimeAddress();
+   printf("%p %lu\n", p, m_idle_elapsed_time.getElapsedTime().getFS());
    // Advance the idle time
    m_idle_elapsed_time.addLatency(time);
    // Advance the total (non-idle + idle) time

@@ -31,7 +31,7 @@ pim: $(KERNELS:=.pim)
 # 	export PIMPROFDECISION=$(shell pwd)/gapbs-32/$(@:.cpuonly=_defaultconfig_32.out) && export PIMPROFROI=CPUONLY && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.cpuonly=.cpuonly.dump) 2>&1
 
 %.pim : src/%.cc src/*.h
-	export PIMPROFDECISION=$(shell pwd)/gapbs-32/decision/$(@:.pim=.out) && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.pim=.pim.dump) 2>&1
+	export PIMPROFDECISION=$(shell pwd)/gapbs-32/decision_reuse/$(@:.pim=.out) && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.pim=.pim.dump) 2>&1
 
 # %.all : src/%.cc src/*.h
 # 	export PIMPROFDECISION=$(shell pwd)/gapbs-32/$(@:.all=_defaultconfig_32.out) && export PIMPROFROI=ALL && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.all=.all.dump) 2>&1
