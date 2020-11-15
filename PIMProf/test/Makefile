@@ -27,6 +27,6 @@ test.pim: test.cpp # print4.cpp pthreads.cpp
 	export PIMPROFDECISION=mpkidecision.out && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && clang++-7 $(CXX_OFF_FLAGS) -o $@ $^ -pthread > test.dump
 
 clean:
-	rm -rf *.inj *.pim inj_cpu inj_pim off_cpu off_pim
+	rm -rf *.inj *.pim inj_cpu inj_pim off_cpu off_pim mpkidecision.out reusedecision.out
 
 .PHONY: all offload clean

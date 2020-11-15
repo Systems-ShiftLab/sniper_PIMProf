@@ -138,26 +138,23 @@ protected:
    std::vector<PIMProf::ThreadStats *> m_pimprof_thread_stats;
 
 public:
-   bool PIMProfIsUsingPIM();
-   int64_t PIMProfGetCurrentBBLID();
-   PIMProf::UUID PIMProfGetCurrentBBLHash();
+   bool PIMProfIsUsingPIM(int idx);
 
-   void PIMProfBBLStart(uint64_t hi, uint64_t lo);
-   void PIMProfBBLEnd(uint64_t hi, uint64_t lo);
+   void PIMProfBBLStart(int idx, uint64_t hi, uint64_t lo);
+   void PIMProfBBLEnd(int idx, uint64_t hi, uint64_t lo);
 
-   void PIMProfOffloadStart(uint64_t hi, uint64_t type);
-   void PIMProfOffloadEnd(uint64_t hi, uint64_t type);
+   void PIMProfOffloadStart(int idx, uint64_t hi, uint64_t type);
+   void PIMProfOffloadEnd(int idx, uint64_t hi, uint64_t type);
 
-   void PIMProfAddTimeInstruction(uint64_t time, uint64_t instr);
-   void PIMProfAddMemory(uint64_t memory_access);
+   void PIMProfAddTimeInstruction(int idx, uint64_t time, uint64_t instr);
+   void PIMProfAddMemory(int idx, uint64_t memory_access);
 
-   void PIMProfAddOffloadingTime(uint64_t time);
+   void PIMProfAddOffloadingTime(int idx, uint64_t time);
+
+   void PIMProfInsertSegOnHit(int idx, uint64_t tag, Core::mem_op_t mem_op_type);
+   void PIMProfSplitSegOnMiss(int idx, uint64_t tag);
 
    void PIMProfPrintStats();
-
-   void PIMProfInsertSegOnHit(uint64_t tag, Core::mem_op_t mem_op_type);
-   void PIMProfSplitSegOnMiss(uint64_t tag);
-
 };
 
 __attribute__((unused)) static Simulator *Sim()

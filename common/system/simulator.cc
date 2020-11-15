@@ -399,59 +399,45 @@ void Simulator::printInstModeSummary()
 /* ===================================================================== */
 /* [Yizhou] PIMProf Wrapper of Thread Function */
 /* ===================================================================== */
-bool Simulator::PIMProfIsUsingPIM() {
-   int idx = m_thread_manager->getCurrentThread()->getId();
+bool Simulator::PIMProfIsUsingPIM(int idx) {
    return m_pimprof_thread_stats[idx]->IsUsingPIM();
 }
 
-void Simulator::PIMProfBBLStart(uint64_t hi, uint64_t lo) {
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->BBLStart(hi, lo);
+void Simulator::PIMProfBBLStart(int idx, uint64_t hi, uint64_t lo) {
+   m_pimprof_thread_stats[idx]->BBLStart(hi, lo);
 }
 
-void Simulator::PIMProfBBLEnd(uint64_t hi, uint64_t lo) {
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->BBLEnd(hi, lo);
+void Simulator::PIMProfBBLEnd(int idx, uint64_t hi, uint64_t lo) {
+   m_pimprof_thread_stats[idx]->BBLEnd(hi, lo);
 }
 
-void Simulator::PIMProfOffloadStart(uint64_t hi, uint64_t type) {
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->OffloadStart(hi, type);
+void Simulator::PIMProfOffloadStart(int idx, uint64_t hi, uint64_t type) {
+   m_pimprof_thread_stats[idx]->OffloadStart(hi, type);
 }
 
-void Simulator::PIMProfOffloadEnd(uint64_t hi, uint64_t type) {
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->OffloadEnd(hi, type);
+void Simulator::PIMProfOffloadEnd(int idx, uint64_t hi, uint64_t type) {
+   m_pimprof_thread_stats[idx]->OffloadEnd(hi, type);
 }
 
-void Simulator::PIMProfAddTimeInstruction(uint64_t time, uint64_t instr) {
-   Thread *thread = m_thread_manager->getCurrentThread();
-   if (thread == NULL) { return; }
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->AddTimeInstruction(time, instr);
+void Simulator::PIMProfAddTimeInstruction(int idx, uint64_t time, uint64_t instr) {
+   m_pimprof_thread_stats[idx]->AddTimeInstruction(time, instr);
 }
 
-void Simulator::PIMProfAddMemory(uint64_t memory_access) {
-   int idx = m_core_manager->getCurrentCoreID(); // somehow thread ID does not work in this case
-   return m_pimprof_thread_stats[idx]->AddMemory(memory_access);
+void Simulator::PIMProfAddMemory(int idx, uint64_t memory_access) {
+   m_pimprof_thread_stats[idx]->AddMemory(memory_access);
 }
 
-void Simulator::PIMProfAddOffloadingTime(uint64_t time) {
-   Thread *thread = m_thread_manager->getCurrentThread();
-   if (thread == NULL) { return; }
-   int idx = m_thread_manager->getCurrentThread()->getId();
-   return m_pimprof_thread_stats[idx]->AddOffloadingTime(time);
+void Simulator::PIMProfAddOffloadingTime(int idx, uint64_t time) {
+   m_pimprof_thread_stats[idx]->AddOffloadingTime(time);
 }
 
-void Simulator::PIMProfInsertSegOnHit(uint64_t tag, Core::mem_op_t mem_op_type)
+void Simulator::PIMProfInsertSegOnHit(int idx, uint64_t tag, Core::mem_op_t mem_op_type)
 {
-   int idx = m_core_manager->getCurrentCoreID();
-   return m_pimprof_thread_stats[idx]->InsertSegOnHit(tag, mem_op_type == Core::mem_op_t::WRITE);
+   m_pimprof_thread_stats[idx]->InsertSegOnHit(tag, mem_op_type == Core::mem_op_t::WRITE);
 }
 
-void Simulator::PIMProfSplitSegOnMiss(uint64_t tag) {
-   int idx = m_core_manager->getCurrentCoreID();
-   return m_pimprof_thread_stats[idx]->SplitSegOnMiss(tag);
+void Simulator::PIMProfSplitSegOnMiss(int idx, uint64_t tag) {
+   m_pimprof_thread_stats[idx]->SplitSegOnMiss(tag);
 }
 
 void Simulator::PIMProfPrintStats() {

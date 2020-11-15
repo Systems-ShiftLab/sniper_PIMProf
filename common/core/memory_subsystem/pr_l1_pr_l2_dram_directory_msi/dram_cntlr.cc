@@ -109,7 +109,8 @@ DramCntlr::runDramPerfModel(core_id_t requester, SubsecondTime time, IntPtr addr
    UInt64 pkt_size = getCacheBlockSize();
    SubsecondTime dram_access_latency = m_dram_perf_model->getAccessLatency(time, pkt_size, requester, address, access_type, perf);
    // [Yizhou]
-   Sim()->PIMProfAddMemory(1);
+   int idx = Sim()->getCoreManager()->getCurrentCoreID();
+   Sim()->PIMProfAddMemory(idx, 1);
    return dram_access_latency;
 }
 
