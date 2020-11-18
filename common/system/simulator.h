@@ -139,6 +139,7 @@ protected:
 
 public:
    bool PIMProfIsUsingPIM(int idx);
+   PIMProf::UUID PIMProfGetCurrentBBLHash(int idx);
 
    void PIMProfBBLStart(int idx, uint64_t hi, uint64_t lo);
    void PIMProfBBLEnd(int idx, uint64_t hi, uint64_t lo);
@@ -155,6 +156,8 @@ public:
    void PIMProfSplitSegOnMiss(int idx, uint64_t tag);
 
    void PIMProfPrintStats();
+
+   void PIMProfAddCPUTime(int idx, uint64_t time);
 };
 
 __attribute__((unused)) static Simulator *Sim()

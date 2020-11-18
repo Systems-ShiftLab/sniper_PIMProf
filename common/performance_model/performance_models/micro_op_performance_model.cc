@@ -568,8 +568,16 @@ void MicroOpPerformanceModel::handleInstruction(DynamicInstruction *dynins)
 
    if (Sim()->PIMProfIsUsingPIM(idx)) {
       Sim()->PIMProfAddOffloadingTime(idx, elapsed_fs);
+      Sim()->PIMProfAddCPUTime(idx, elapsed_fs);
       m_elapsed_time_pim.addLatency(new_latency);
    }
+   // else {
+   //    if (new_latency.getCycleCount() > 0) {
+   //       // auto bblhash = Sim()->PIMProfGetCurrentBBLHash(idx);
+         
+   //       // std::cout << new_latency << " " << std::hex << bblhash.first << " " << bblhash.second << std::endl;
+   //    }
+   // }
 
 
 #if DEBUG_CYCLE_COUNT_LOG

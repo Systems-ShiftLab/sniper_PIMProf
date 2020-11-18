@@ -403,6 +403,10 @@ bool Simulator::PIMProfIsUsingPIM(int idx) {
    return m_pimprof_thread_stats[idx]->IsUsingPIM();
 }
 
+PIMProf::UUID Simulator::PIMProfGetCurrentBBLHash(int idx) {
+   return m_pimprof_thread_stats[idx]->GetCurrentBBLHash();
+}
+
 void Simulator::PIMProfBBLStart(int idx, uint64_t hi, uint64_t lo) {
    m_pimprof_thread_stats[idx]->BBLStart(hi, lo);
 }
@@ -441,7 +445,7 @@ void Simulator::PIMProfSplitSegOnMiss(int idx, uint64_t tag) {
 }
 
 void Simulator::PIMProfPrintStats() {
-   std::unordered_map<PIMProf::UUID, PIMProf::BBLStats *, PIMProf::UUIDHashFunc> statsmap;
+   PIMProf::UUIDHashMap<PIMProf::BBLStats *> statsmap;
    for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
       m_pimprof_thread_stats[i]->MergeStatsMap(statsmap);
    }
@@ -477,4 +481,8 @@ void Simulator::PIMProfPrintStats() {
       m_pimprof_thread_stats[i]->PrintDataReuseSegments(ofs);
    }
    ofs.close();
+}
+
+void Simulator::PIMProfAddCPUTime(int idx, uint64_t time) {
+   m_pimprof_thread_stats[idx]->AddCPUTime(time);
 }
