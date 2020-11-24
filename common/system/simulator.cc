@@ -246,8 +246,9 @@ void Simulator::start()
    }
    
    // [Yizhou] initialization
+   m_pimprof_thread_stats = new PIMProf::ThreadStats*[getConfig()->getTotalCores()];
    for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
-      m_pimprof_thread_stats.push_back(new PIMProf::ThreadStats(i));
+      m_pimprof_thread_stats[i] = new PIMProf::ThreadStats(i);
    }
 
    m_running = true;
@@ -292,6 +293,7 @@ Simulator::~Simulator()
    for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
       delete m_pimprof_thread_stats[i];
    }
+   delete[] m_pimprof_thread_stats;
 
    if (m_rtn_tracer)
    {

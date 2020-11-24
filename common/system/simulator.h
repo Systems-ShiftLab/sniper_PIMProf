@@ -135,7 +135,7 @@ private:
 /* ===================================================================== */
 protected:
 
-   std::vector<PIMProf::ThreadStats *> m_pimprof_thread_stats;
+   PIMProf::ThreadStats **m_pimprof_thread_stats;
 
 public:
    bool PIMProfIsUsingPIM(int idx);
