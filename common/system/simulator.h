@@ -135,9 +135,11 @@ private:
 /* ===================================================================== */
 protected:
 
-   PIMProf::ThreadStats **m_pimprof_thread_stats;
+   std::vector<PIMProf::ThreadStats *> m_pimprof_thread_stats;
 
 public:
+   inline void PIMProfAllocateThreadStats(int idx);
+
    bool PIMProfIsUsingPIM(int idx);
    PIMProf::UUID PIMProfGetCurrentBBLHash(int idx);
 

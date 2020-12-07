@@ -244,12 +244,6 @@ void Simulator::start()
       // roi-begin
       Sim()->getMagicServer()->setPerformance(true);
    }
-   
-   // [Yizhou] initialization
-   m_pimprof_thread_stats = new PIMProf::ThreadStats*[getConfig()->getTotalCores()];
-   for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
-      m_pimprof_thread_stats[i] = new PIMProf::ThreadStats(i);
-   }
 
    m_running = true;
 }
@@ -288,12 +282,11 @@ Simulator::~Simulator()
 
    m_transport->barrier();
 
-   // [Yizhou]
+   // [Yizhou] Deallocation
    PIMProfPrintStats();
-   for (uint32_t i = 0; i < getConfig()->getTotalCores(); ++i) {
-      delete m_pimprof_thread_stats[i];
+   for (auto ptr : m_pimprof_thread_stats) {
+      delete ptr;
    }
-   delete[] m_pimprof_thread_stats;
 
    if (m_rtn_tracer)
    {
@@ -401,76 +394,98 @@ void Simulator::printInstModeSummary()
 /* ===================================================================== */
 /* [Yizhou] PIMProf Wrapper of Thread Function */
 /* ===================================================================== */
+inline void Simulator::PIMProfAllocateThreadStats(int idx) {
+   while (m_pimprof_thread_stats.size() <= (unsigned) idx) {
+      int tid = m_pimprof_thread_stats.size();
+      m_pimprof_thread_stats.push_back(new PIMProf::ThreadStats(tid));
+   }
+}
+
 bool Simulator::PIMProfIsUsingPIM(int idx) {
+   PIMProfAllocateThreadStats(idx);
    return m_pimprof_thread_stats[idx]->IsUsingPIM();
 }
 
 PIMProf::UUID Simulator::PIMProfGetCurrentBBLHash(int idx) {
+   PIMProfAllocateThreadStats(idx);
    return m_pimprof_thread_stats[idx]->GetCurrentBBLHash();
 }
 
 void Simulator::PIMProfBBLStart(int idx, uint64_t hi, uint64_t lo) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->BBLStart(hi, lo);
 }
 
 void Simulator::PIMProfBBLEnd(int idx, uint64_t hi, uint64_t lo) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->BBLEnd(hi, lo);
 }
 
 void Simulator::PIMProfOffloadStart(int idx, uint64_t hi, uint64_t type) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->OffloadStart(hi, type);
 }
 
 void Simulator::PIMProfOffloadEnd(int idx, uint64_t hi, uint64_t type) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->OffloadEnd(hi, type);
 }
 
 void Simulator::PIMProfAddTimeInstruction(int idx, uint64_t time, uint64_t instr) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->AddTimeInstruction(time, instr);
 }
 
 void Simulator::PIMProfAddMemory(int idx, uint64_t memory_access) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->AddMemory(memory_access);
 }
 
 void Simulator::PIMProfAddOffloadingTime(int idx, uint64_t time) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->AddOffloadingTime(time);
 }
 
-void Simulator::PIMProfInsertSegOnHit(int idx, uint64_t tag, Core::mem_op_t mem_op_type)
-{
+void Simulator::PIMProfInsertSegOnHit(int idx, uint64_t tag, Core::mem_op_t mem_op_type) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->InsertSegOnHit(tag, mem_op_type == Core::mem_op_t::WRITE);
 }
 
 void Simulator::PIMProfSplitSegOnMiss(int idx, uint64_t tag) {
+   PIMProfAllocateThreadStats(idx);
    m_pimprof_thread_stats[idx]->SplitSegOnMiss(tag);
+}
+
+void Simulator::PIMProfAddCPUTime(int idx, uint64_t time) {
+   PIMProfAllocateThreadStats(idx);
+   m_pimprof_thread_stats[idx]->AddCPUTime(time);
 }
 
 void Simulator::PIMProfPrintStats() {
    PIMProf::UUIDHashMap<PIMProf::BBLStats *> statsmap;
-   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   for (uint32_t i = 0; i < m_pimprof_thread_stats.size(); ++i) {
       m_pimprof_thread_stats[i]->MergeStatsMap(statsmap);
    }
    m_pimprof_thread_stats[0]->GenerateBBLID(statsmap);
-   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   for (uint32_t i = 0; i < m_pimprof_thread_stats.size(); ++i) {
       m_pimprof_thread_stats[i]->AssignBBLID(statsmap);
    }
 
    String filename = m_config.formatOutputFileName("pimprofstats.out");
    std::ofstream ofs(filename.c_str());
    
-   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   for (uint32_t i = 0; i < m_pimprof_thread_stats.size(); ++i) {
       m_pimprof_thread_stats[i]->PrintStats(ofs);
    }
    ofs.close();
 
    ofs.open(m_config.formatOutputFileName("pimprofstats2.out").c_str());
-   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   for (uint32_t i = 0; i < m_pimprof_thread_stats.size(); ++i) {
       m_pimprof_thread_stats[i]->PrintPIMTime(ofs);
    }
    ofs.close();
 
-   // for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   // for (uint32_t i = 0; i < m_pimprof_thread_stats.size(); ++i) {
    //    std::stringstream ss;
    //    ss << "pimprofreuse" << i << ".dot";
    //    ofs.open(m_config.formatOutputFileName(ss.str().c_str()).c_str());
@@ -479,12 +494,8 @@ void Simulator::PIMProfPrintStats() {
    // }
 
    ofs.open(m_config.formatOutputFileName("pimprofreusesegments.out").c_str());
-   for (uint32_t i = 0; i < m_config.getTotalCores(); ++i) {
+   for (uint32_t i = 0; i < m_pimprof_thread_stats.size(); ++i) {
       m_pimprof_thread_stats[i]->PrintDataReuseSegments(ofs);
    }
    ofs.close();
-}
-
-void Simulator::PIMProfAddCPUTime(int idx, uint64_t time) {
-   m_pimprof_thread_stats[idx]->AddCPUTime(time);
 }

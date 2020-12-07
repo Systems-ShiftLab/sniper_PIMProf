@@ -437,9 +437,11 @@ MYLOG("L1 hit");
       }
 
       // [Yizhou] L1 Hit
-      int idx = Sim()->getCoreManager()->getCurrentCoreID();
-      Sim()->PIMProfInsertSegOnHit(idx, ca_address, mem_op_type);
-
+      Thread *thread = Sim()->getThreadManager()->getCurrentThread();
+      if (thread != NULL) {
+         int idx = thread->getId();
+         Sim()->PIMProfInsertSegOnHit(idx, ca_address, mem_op_type);
+      }
    } else {
       /* cache miss: either wrong coherency state or not present in the cache */
 MYLOG("L1 miss");
@@ -481,8 +483,11 @@ MYLOG("processMemOpFromCore l%d next hit = %d", m_mem_component, next_cache_hit)
 
       if (next_cache_hit) {
          // [Yizhou] lower level cache hit
-         int idx = Sim()->getCoreManager()->getCurrentCoreID();
-         Sim()->PIMProfInsertSegOnHit(idx, ca_address, mem_op_type);
+         Thread *thread = Sim()->getThreadManager()->getCurrentThread();
+         if (thread != NULL) {
+            int idx = thread->getId();
+            Sim()->PIMProfInsertSegOnHit(idx, ca_address, mem_op_type);
+         }
       } else {
          /* last level miss, a message has been sent. */
 
@@ -514,8 +519,11 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
          #else
          #endif
          // [Yizhou] cache miss
-         int idx = Sim()->getCoreManager()->getCurrentCoreID();
-         Sim()->PIMProfSplitSegOnMiss(idx, ca_address);
+         Thread *thread = Sim()->getThreadManager()->getCurrentThread();
+         if (thread != NULL) {
+            int idx = thread->getId();
+            Sim()->PIMProfSplitSegOnMiss(idx, ca_address);
+         }
       }
 
 
