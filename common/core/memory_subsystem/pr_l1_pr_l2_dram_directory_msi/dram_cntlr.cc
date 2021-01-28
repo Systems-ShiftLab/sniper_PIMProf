@@ -108,12 +108,10 @@ DramCntlr::runDramPerfModel(core_id_t requester, SubsecondTime time, IntPtr addr
 {
    UInt64 pkt_size = getCacheBlockSize();
    SubsecondTime dram_access_latency = m_dram_perf_model->getAccessLatency(time, pkt_size, requester, address, access_type, perf);
-   // [Yizhou]
-   Thread *thread = Sim()->getThreadManager()->getCurrentThread();
-   if (thread != NULL) {
-      int idx = thread->getId();
-      Sim()->PIMProfAddMemory(idx, 1);
-   }
+
+   // [Yizhou] Here we use core id instead of thread id, so the collected thread memory accesses are not exactly from the same thread.
+   // But since we will eventually add up all memory accesses from all threads, this will not cause an issue for now.
+   Sim()->PIMProfAddMemory(requester, 1);
    
    return dram_access_latency;
 }
