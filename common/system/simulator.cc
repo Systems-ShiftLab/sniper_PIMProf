@@ -462,7 +462,7 @@ void Simulator::PIMProfAddCPUTime(int idx, uint64_t time) {
 }
 
 void Simulator::PIMProfPrintStats() {
-   PIMProf::UUIDHashMap<PIMProf::BBLStats *> statsmap;
+   PIMProf::UUIDHashMap<PIMProf::RunStats *> statsmap;
    for (size_t i = 0; i < m_pimprof_thread_stats.size(); ++i) {
       m_pimprof_thread_stats[i]->MergeStatsMap(statsmap);
    }
