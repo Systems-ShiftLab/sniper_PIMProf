@@ -18,10 +18,14 @@ SUITE = $(KERNELS) converter
 #SUITE_FINAL = $(SUITE:=.final)
 
 inj: $(KERNELS:=.inj)
+inj2: $(KERNELS:=.inj2)
 pim: $(KERNELS:=.pim)
 
 %.inj: src/%.cc src/*.h
-	export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_INJ_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS)
+	export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_INJ_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.inj=.inj.dump) 2>&1
+
+%.inj2: src/%.cc src/*.h
+	export PIMPROFINJECTMODE=SNIPER2 && $(CXX) $(CXX_INJ_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.inj=.inj.dump) 2>&1
 
 # # PIMProf-auto
 # %.cpu : src/%.cc src/*.h
@@ -31,7 +35,7 @@ pim: $(KERNELS:=.pim)
 # 	export PIMPROFDECISION=$(shell pwd)/gapbs-32/$(@:.cpuonly=_defaultconfig_32.out) && export PIMPROFROI=CPUONLY && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.cpuonly=.cpuonly.dump) 2>&1
 
 %.pim : src/%.cc src/*.h
-	export PIMPROFDECISION=$(shell pwd)/gapbs-32/decision_reuse/$(@:.pim=.out) && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.pim=.pim.dump) 2>&1
+	export PIMPROFDECISION=$(shell pwd)/gapbs-32/$(@:.pim=.out) && export PIMPROFROI=PIMONLY && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.pim=.pim.dump) 2>&1
 
 # %.all : src/%.cc src/*.h
 # 	export PIMPROFDECISION=$(shell pwd)/gapbs-32/$(@:.all=_defaultconfig_32.out) && export PIMPROFROI=ALL && export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_FLAGS) $(CXX_OFF_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.all=.all.dump) 2>&1
@@ -67,7 +71,7 @@ pim: $(KERNELS:=.pim)
 
 .PHONY: clean
 clean:
-	rm -f $(SUITE) test/out/* *.inj *.pim *.pim.dump
+	rm -f $(SUITE) test/out/* *.inj *.inj2 *.pim *.pim.dump
 
 clean_kernel:
 	rm -f $(KERNELS)
