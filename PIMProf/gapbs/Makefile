@@ -3,7 +3,7 @@ include ../buildconf.makefile
 
 CXX = /usr/bin/clang++-10
 PIMPROF_ROOT = /home/warsier/Documents/PIMProf_solver/
-PIMPROF_MODE = debug
+PIMPROF_MODE = build
 VTUNE_ROOT = /opt/intel/oneapi/vtune/latest/
 
 CXX_FLAGS = -std=c++11 -O3 -Wall -fopenmp -g -I$(PIMPROF_ROOT)/LLVMAnalysis
@@ -24,10 +24,10 @@ pim: $(KERNELS:=.pim)
 vtune: $(KERNELS:=.vtune)
 
 %.inj: src/%.cc src/*.h
-	export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_INJ_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) #> $(@:.inj=.inj.dump) 2>&1
+	export PIMPROFINJECTMODE=SNIPER && $(CXX) $(CXX_INJ_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.inj=.inj.dump) 2>&1
 
 %.inj2: src/%.cc src/*.h
-	export PIMPROFINJECTMODE=SNIPER2 && $(CXX) $(CXX_INJ_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) #> $(@:.inj=.inj.dump) 2>&1
+	export PIMPROFINJECTMODE=SNIPER2 && $(CXX) $(CXX_INJ_FLAGS) $(SNIPER_CFLAGS) -o $@ $< $(LD_FLAGS) > $(@:.inj=.inj.dump) 2>&1
 
 # # PIMProf-auto
 # %.cpu : src/%.cc src/*.h
