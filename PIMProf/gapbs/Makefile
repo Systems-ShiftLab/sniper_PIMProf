@@ -14,9 +14,12 @@ CXX_OFF_FLAGS += $(CXX_FLAGS) -Xclang -load -Xclang $(PIMPROF_ROOT)/$(PIMPROF_MO
 LD_FLAGS = -pthread -Wl,-Bstatic -L$(SNIPER_ROOT)/lib -Wl,-Bdynamic -lm
 
 KERNELS = bc bfs cc pr sssp # cc_sv tc
-SUITE = $(KERNELS) converter
 #SUITE_ZSIM = $(SUITE:=.zsim)
 #SUITE_FINAL = $(SUITE:=.final)
+
+.PHONY: all
+all: inj
+	$(CXX) $(CXX_FLAGS) src/converter.cc -o converter
 
 inj: $(KERNELS:=.inj)
 inj2: $(KERNELS:=.inj2)
